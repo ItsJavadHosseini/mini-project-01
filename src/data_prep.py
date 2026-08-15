@@ -50,7 +50,7 @@ def preparation_data(df):
     
     print('\nmissing values:')
     print(df.isnull().sum())    
-    print(df.isna().sum())
+    
     
     print(f'\nDuplicate: {df.duplicated().sum()}')
     
