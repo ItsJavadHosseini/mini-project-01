@@ -36,7 +36,7 @@ def load_data(file_path=DATA_PATH):
     return df
 
 #print(load_data(DATA_PATH))  
-df = load_data(DATA_PATH)
+#df = load_data(DATA_PATH)
 
     
 #data preparation
@@ -64,6 +64,8 @@ def preparation_data(df):
 
 #print(preparation_data(df))   
     
+#df= preparation_data(df)
+
 
 #manage duplicate
 def manage_duplicate(df):
@@ -82,3 +84,91 @@ def manage_duplicate(df):
 
 #print(manage_duplicate(df))
 
+#df = manage_duplicate(df)
+
+def prepare_feature_target(df, target_columns):
+    """
+    input -> dataframs & target;
+    out -> seprate target
+    """
+    X = df.drop(columns=[target_columns])
+    y = df[target_columns]
+    
+    print(f'X.shape:{X.shape}')
+    print(f'y.shape:{y.shape}')
+    
+    return X, y
+
+
+
+#X, y = prepare_feature_target(df, 'Class')
+    
+def split_data(X, y, test_size=0.2, random_state=42):
+    """
+    split and stratified data;
+    """
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=test_size,
+        stratify=y,
+        random_state=random_state
+    )
+    print(f'X-train: {X_train.shape}')
+    print(f'X-train: {X_test.shape}')
+    
+    print(f'y train dist{y_train.value_counts(normalize=True)}')
+    print(f'y test dist{y_test.value_counts(normalize=True)}')
+    
+    return X_train, X_test, y_train, y_test
+
+#print(split_data(X, y))
+
+
+#Scailing
+def scale_features(X_train, X_test):
+    scaler = StandardScaler()
+    
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    X_train_scaled = pd.DataFrame(
+        X_train_scaled,
+        columns=X_train.columns,
+        index=X_train.index
+    )
+    
+    X_test_scaled = pd.DataFrame(
+        X_test_scaled,
+        columns=X_test.columns,
+        index=X_test.index
+    )
+    
+    return X_train_scaled, X_test_scaled, scaler
+    
+    
+def save_scaler(scaler, path= SCALER_PATH):
+    """
+    save fitted scaller
+    """
+    joblib.dump(scaler, path)  
+    print(f'scaler saved to: {path}')
+    
+    
+    
+if __name__ == "__main__":
+    df = load_data()
+    
+    preparation_data(df)
+    
+    df = manage_duplicate(df)
+    
+    X, y = prepare_feature_target(df, 'Class')
+    
+    X_train, X_test, y_train, y_test = split_data(X, y)
+    
+    X_train_scaled, X_test_scaled, scaler = scale_features(X_train, X_test)
+    
+    save_scaler(scaler) 
+    
+    print(f'{100} * 100\nData prep complated.')   
