@@ -34,7 +34,7 @@ Yes. I expect feature scaling to significantly affect KNN because KNN uses dista
 
 Yes. I expect the Decision Tree to overfit, especially if the tree becomes too deep. A deep tree can learn noise and specific patterns from the training data instead of general patterns.
 
-## After Training Analysis
+# After Training Analysis
 
 ### Was your initial hypothesis correct?
 
@@ -55,3 +55,6 @@ Class imbalance can make Accuracy misleading because a model can achieve high Ac
 ### What was the trade-off between False Positives and False Negatives?
 
 False Positives mean legitimate transactions were classified as fraud, while False Negatives mean fraudulent transactions were classified as legitimate. In fraud detection, False Negatives are particularly important because they represent missed fraud.
+
+
+
