@@ -7,6 +7,9 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+from sklearn.metrics import confusion_matrix, f1_score,\
+    recall_score, accuracy_score, precision_score
+
 from sklearn.model_selection import (cross_validate, StratifiedKFold)
 
 from data_prep import (
@@ -18,9 +21,8 @@ from data_prep import (
 RANDOM_STATE = 42
 N_SPLIT = 5
 
-
 models = {
-    'Logestic Regression' : Pipeline([
+    'Logistic Regression' : Pipeline([
         ('scaler' , StandardScaler()),
         ('model', LogisticRegression(
             max_iter=1000,
@@ -130,6 +132,30 @@ def select_best_model(result, metric='f1_mean'):
     
     return beast_model_name
 
+def evaluate_model(model, X_train, y_train, X_test, y_test):
+    """
+    train one model on the entire training set
+    and evalute it on the test set.
+    """
+    
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred)
+    return {
+        'accuracy': accuracy,
+        'precision': precision,
+        'recall': recall,
+        'f1': f1,
+        'confusion_matrix': cm
+    }
+    
+   
+    
+    
 
 if __name__ == "__main__":
     
@@ -182,9 +208,46 @@ if __name__ == "__main__":
         results,
         metric="f1_mean"
     )
+    
+    beast_model = models[best_model_name]
+    test_results = evaluate_model(beast_model,X_train,y_train,X_test,y_test)
+    
+    
+    print("\n" + "=" * 20)
+    print('FAINAL TEST EVALUATION FOR BEAST MODEL')
+    print("=" * 20)
+    
+    print(f'model: {best_model_name}')
+    print(f'Accuracy: {test_results['accuracy']:.4f}')
+    print(f'Precision: {test_results['precision']:.4f}')
+    print(f'Recall: {test_results['recall']:.4f}')
+    print(f'f1: {test_results['f1']:.4f}')
+    print(f'cm: \n{test_results['confusion_matrix']}')
+    
 
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 20)
+    print('COMPARE EVALUATION')
+    print("=" * 20)
+
+    for name, model in models.items():
+        print(f'\n\nEvaluating: {name}')
+        result = evaluate_model(model, X_train, y_train,\
+            X_test, y_test)
+        
+        
+        print(f'model: {name}')
+        print(f'Accuracy: {result['accuracy']:.4f}')
+        print(f'Precision: {result['precision']:.4f}')
+        print(f'Recall: {result['recall']:.4f}')
+        print(f'f1: {result['f1']:.4f}')
+        print(f'cm: \n{result['confusion_matrix']}')
+        
+    
+    
+
+    print("\n" + "=" * 20)
     print("CROSS-VALIDATION COMPLETED")
-    print("=" * 60)
+    print("=" * 20)
 
     print("\nCross-validation completed.")
+    
