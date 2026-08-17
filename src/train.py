@@ -46,28 +46,34 @@ cv = StratifiedKFold(
     random_state=RANDOM_STATE
 )
 
-
 def compare_models(X_train, y_train):
+
     """
     Compare all models using stratified cross-validation.
     """
 
     results = {}
+    scoring = {
+        "accuracy": "accuracy",
+        "precision": "precision",
+        "recall": "recall",
+        "f1": "f1",
+        "roc_auc": "roc_auc",
+        "pr_auc": "average_precision"
+    }
 
-    for name, pipeline in models.items():
+    for name, model in models.items():
+
+        print(f"\nTraining: {name}")
 
         scores = cross_validate(
-            estimator=pipeline,
+            estimator=model,
             X=X_train,
             y=y_train,
             cv=cv,
-            scoring=[
-                'accuracy',
-                'precision',
-                'recall',
-                'f1'
-            ],
-            n_jobs=-1
+            scoring=scoring,
+            n_jobs=-1,
+            return_train_score=False
         )
 
         results[name] = {
@@ -94,19 +100,45 @@ def compare_models(X_train, y_train):
                 scores['test_f1'].mean(),
 
             'f1_std':
-                scores['test_f1'].std()
-        }
+                scores['test_f1'].std(),
+            # ROC-AUC
+            "roc_auc_mean":
+                scores["test_roc_auc"].mean(),
 
+            "roc_auc_std":
+                scores["test_roc_auc"].std(),
+
+            # PR-AUC
+            "pr_auc_mean":
+                scores["test_pr_auc"].mean(),
+
+            "pr_auc_std":
+                scores["test_pr_auc"].std()
+        }
+        
     return pd.DataFrame(results).T
 
-if __name__ == "__main__":
 
+def select_best_model(result, metric='f1_mean'):
+    """
+    select the beast model 
+    """
+    beast_model_name = result[metric].idxmax()
+    beast_model_score = result.loc[beast_model_name, metric]
+    
+    print(f'beast model= {beast_model_name}\nmeric= {metric}\nscore= {beast_model_score}')
+    
+    return beast_model_name
+
+
+if __name__ == "__main__":
+    
     # Load dataset
     df = load_data()
-
+    
     # Explore dataset
     explore_data(df)
-
+    
     # Remove duplicate rows
     df = manage_duplicate(df)
 
@@ -128,19 +160,31 @@ if __name__ == "__main__":
         y_train
     )
 
-    print("\n" + "=" * 60)
-    print("MODEL COMPARISON")
-    print("=" * 60)
+    display_columns = [
+        "accuracy_mean",
+        "precision_mean",
+        "recall_mean",
+        "f1_mean",
+        "roc_auc_mean",
+        "pr_auc_mean"
+    ]
 
     print(
-        results[
-            [
-                'accuracy_mean',
-                'precision_mean',
-                'recall_mean',
-                'f1_mean'
-            ]
-        ].round(4).to_string()
+        results[display_columns]
+        .round(4)
+        .to_string()
     )
+    
+    
+    
+    # select beast model
+    best_model_name = select_best_model(
+        results,
+        metric="f1_mean"
+    )
+
+    print("\n" + "=" * 60)
+    print("CROSS-VALIDATION COMPLETED")
+    print("=" * 60)
 
     print("\nCross-validation completed.")
