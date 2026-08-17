@@ -171,34 +171,39 @@ def evaluate_model(model, X_train, y_train, X_test, y_test):
     }
 
 def scaling_experiment(model_without_scaling,\
-    model_with_scaling,X_train,y_train,X_test,y_test):
+    model_with_scaling,X_train,y_train):
     
     """
-    
     compare model & experiment
     """
     results = {}
-    models = {
+    experiment_models = {
         'Without Scaling' : model_without_scaling,
         'With Scaling' : model_with_scaling
     }
-
-    for name, model in models.items():
+    
+    scoring = {
+        'precision': 'precision',
+        'recall': 'recall',
+        'f1': 'f1'
+    }
+    
+    
+    for name, model in experiment_models.items():
         
-        # train
-        model.fit(
-            X_train,
-            y_train
+        scores = cross_validate(
+            estimator=model,
+            X= X_train,
+            y=y_train,
+            cv= cv,
+            scoring= scoring,
+            n_jobs= -1
         )
         
-        #predict
-        y_pred = model.predict(X_test)
-        
-        # Metrics
         results[name] = {
-            'precision' : precision_score(y_test, y_pred),
-            'recall' : recall_score(y_test, y_pred),
-            'f1' : f1_score(y_test, y_pred),
+            'precision': scores['test_precision'].mean(),
+            'recall': scores['test_recall'].mean(),
+            'f1': scores['test_f1'].mean()
         }
         
     return pd.DataFrame(results).T
@@ -217,25 +222,35 @@ knn_with_scaling = Pipeline([
 ])
 
 def knn_hyperparameter_expriment(X_train, y_train,\
-    X_test, y_test, k_values=(1, 5, 20)):
+    k_values=(1, 5, 20)):
     """
     compare KNN performance for different values of K.   
     """
     results = {}
+    scoring = {
+        'precision': 'precision',
+        'recall': 'recall',
+        'f1': 'f1'
+    }
+    
     for k in k_values:
         model = Pipeline([
             ('scaler',StandardScaler()),
             ('model',KNeighborsClassifier(n_neighbors=k))
         ])
-        
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-        results[f'k= {k}'] = {
-            'precision': precision_score(y_test, y_pred),
-            'recall': recall_score(y_test, y_pred),
-            'f1': f1_score(y_test, y_pred),
+        scores = cross_validate(
+            estimator=model,
+            X=X_train,
+            y=y_train,
+            cv=cv,
+            scoring=scoring,
+            n_jobs=-1
+        )
+        results[f'k={k}'] = {
+            'precision': scores['test_precision'].mean(),
+            'recall': scores['test_recall'].mean(),
+            'f1': scores['test_f1'].mean()
         }
-
     return pd.DataFrame(results).T
 
 
@@ -395,9 +410,7 @@ if __name__ == "__main__":
         knn_without_scaling,
         knn_with_scaling,
         X_train,
-        y_train,
-        X_test,
-        y_test
+        y_train
     )
     
     print(
