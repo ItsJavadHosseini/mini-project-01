@@ -33,7 +33,6 @@ models = {
         
     ]),
     'Decision Tree': Pipeline([
-        ('scaler', StandardScaler()),
         ('mmodel', DecisionTreeClassifier(random_state=RANDOM_STATE))
         
     ])

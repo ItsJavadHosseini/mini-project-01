@@ -18,7 +18,6 @@ MODELS_PATH.mkdir(exist_ok=True)
 
 
 def load_data(file_path=DATA_PATH):
-
     """
     load dataset
     out -> df
@@ -47,7 +46,7 @@ def explore_data(df):
     class dist;
     check duplicate
     """
-    print(f'info: {df.info()}')
+    
     print(f'sampels: {len(df):,}')
     print(f'features: {len(df.columns)}')
 
@@ -61,6 +60,10 @@ def explore_data(df):
     print(f"\nClass ratio: {df['Class'].value_counts(normalize=True)}")
 
     print(f'Discribe: {df.describe()}')
+    
+    print(f'info:')
+    
+    df.info()
 
     return df
 
