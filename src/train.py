@@ -216,7 +216,86 @@ knn_with_scaling = Pipeline([
     ))
 ])
 
+def knn_hyperparameter_expriment(X_train, y_train,\
+    X_test, y_test, k_values=(1, 5, 20)):
+    """
+    compare KNN performance for different values of K.   
+    """
+    results = {}
+    for k in k_values:
+        model = Pipeline([
+            ('scaler',StandardScaler()),
+            ('model',KNeighborsClassifier(n_neighbors=k))
+        ])
+        
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        results[f'k= {k}'] = {
+            'precision': precision_score(y_test, y_pred),
+            'recall': recall_score(y_test, y_pred),
+            'f1': f1_score(y_test, y_pred),
+        }
+
+    return pd.DataFrame(results).T
+
+
+def desicion_tree_hyperparameter_experiment(X_train, y_train,\
+    X_test, y_test, depth_values=(2, 5, 10, None)):
+    """
+    compare decision tree performance for
+    different values of max_depth.
+    """
+    results = {
     
+    }
+    
+    for depth in depth_values:
+        model = DecisionTreeClassifier(max_depth=depth,random_state=RANDOM_STATE)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        results[f'max depth = {depth}'] = {
+            'precision': precision_score(y_test, y_pred),
+            'recall': recall_score(y_test, y_pred),
+            'f1': f1_score(y_test, y_pred)
+        }
+        
+    return pd.DataFrame(results).T
+
+def threshold_experiment(model, X_train, y_train,\
+    X_test, y_test, thresholds=(0.3, 0.5, 0.7)):
+    
+    """
+    return model performance using different classification threshold.
+    """
+    
+    #train model
+    model.fit(X_train, y_train)
+    y_proba = model.predict_proba(X_test)[:, 1]
+    results = {}
+    for threshold in thresholds:
+        #convert probabilitis to class labels
+        y_pred = (
+            y_proba >= threshold
+        ).astype(int)
+        
+        results[threshold] = {
+            'precision': precision_score(y_test, y_pred),
+            'recall': recall_score(y_test, y_pred),
+            'f1': f1_score(y_test, y_pred),
+        }
+    return pd.DataFrame(results).T
+    
+    
+    
+    pass
+
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
     
@@ -308,7 +387,7 @@ if __name__ == "__main__":
     
     
     print("\n" + "=" * 20)
-    print("EXPERIMENT")
+    print("EXPERIMENT1 - KNN without/with scale")
     print("=" * 20)
     
 
@@ -328,8 +407,68 @@ if __name__ == "__main__":
     
 
     print("\n" + "=" * 20)
-    print("CROSS-VALIDATION COMPLETED")
+    print("EXPERIMENT2 - KNN by hyperparammeters")
     print("=" * 20)
 
-    print("\nCross-validation completed.")
+    knn_results = knn_hyperparameter_expriment(
+        X_train, y_train, X_test, y_test
+    )
+    
+    print(knn_results.round(4).to_string())
+
+
+    print("\n" + "=" * 20)
+    print("EXPERIMENT2 - Decisiontree by hyperparammeters")
+    print("=" * 20)
+    
+    tree_results = desicion_tree_hyperparameter_experiment(
+        X_train, y_train, X_test, y_test
+    )
+
+    print(tree_results.round(4).to_string())
+
+
+
+    print("\n" + "=" * 20)
+    print("EXPERIMENT 3 Classification Threshold")
+    print("=" * 20)
+
+    threshold_results = threshold_experiment(
+        models['Logistic Regression'],
+        X_train, 
+        y_train,
+        X_test,
+        y_test
+    )
+
+    print('\nLogisticRegression:\n',threshold_results.round(4).to_string())
+
+    threshold_results = threshold_experiment(
+        models['Decision Tree'],
+        X_train, 
+        y_train,
+        X_test,
+        y_test
+    )
+
+    print('\nDecison Tree:\n',threshold_results.round(4).to_string())
+
+    threshold_results = threshold_experiment(
+        models['KNN'],
+        X_train, 
+        y_train,
+        X_test,
+        y_test
+    )
+
+    print('\nKNN:\n',threshold_results.round(4).to_string())
+
+
+
+
+    print("\n" + "=" * 20)
+    print("FINISH!")
+    print("=" * 20)
+
+    
     
