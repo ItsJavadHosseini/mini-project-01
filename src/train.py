@@ -41,7 +41,7 @@ models = {
 }
 
 
-
+# cross validation
 cv = StratifiedKFold(
     n_splits=N_SPLIT, 
     shuffle=True,
@@ -121,15 +121,32 @@ def compare_models(X_train, y_train):
     return pd.DataFrame(results).T
 
 
+def display_cv_results(results):
+    """
+    display the required cross validation metrics.
+    """
+    
+    columns = [
+        'precision_mean',
+        'recall_mean',
+        'f1_mean'
+        ]
+    
+    print('\n5-Folld Stratified Cross Validation Results:')
+    print(
+        results[columns].round(4).to_string()
+    )
+
+
 def select_best_model(result, metric='f1_mean'):
     """
     select the beast model 
     """
     beast_model_name = result[metric].idxmax()
     beast_model_score = result.loc[beast_model_name, metric]
-    
-    print(f'beast model= {beast_model_name}\nmeric= {metric}\nscore= {beast_model_score}')
-    
+    print(f'beast model= {beast_model_name}\nmeric= {metric}\n\
+        score= {beast_model_score}')
+
     return beast_model_name
 
 def evaluate_model(model, X_train, y_train, X_test, y_test):
@@ -152,9 +169,53 @@ def evaluate_model(model, X_train, y_train, X_test, y_test):
         'f1': f1,
         'confusion_matrix': cm
     }
+
+def scaling_experiment(model_without_scaling,\
+    model_with_scaling,X_train,y_train,X_test,y_test):
     
-   
+    """
     
+    compare model & experiment
+    """
+    results = {}
+    models = {
+        'Without Scaling' : model_without_scaling,
+        'With Scaling' : model_with_scaling
+    }
+
+    for name, model in models.items():
+        
+        # train
+        model.fit(
+            X_train,
+            y_train
+        )
+        
+        #predict
+        y_pred = model.predict(X_test)
+        
+        # Metrics
+        results[name] = {
+            'precision' : precision_score(y_test, y_pred),
+            'recall' : recall_score(y_test, y_pred),
+            'f1' : f1_score(y_test, y_pred),
+        }
+        
+    return pd.DataFrame(results).T
+
+
+
+# model experiment
+knn_without_scaling = KNeighborsClassifier(n_neighbors=5)
+
+
+knn_with_scaling = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', KNeighborsClassifier(
+        n_neighbors=5
+    ))
+])
+
     
 
 if __name__ == "__main__":
@@ -242,6 +303,27 @@ if __name__ == "__main__":
         print(f'f1: {result['f1']:.4f}')
         print(f'cm: \n{result['confusion_matrix']}')
         
+    
+    display_cv_results(results)
+    
+    
+    print("\n" + "=" * 20)
+    print("EXPERIMENT")
+    print("=" * 20)
+    
+
+    experiment_result = scaling_experiment(
+        knn_without_scaling,
+        knn_with_scaling,
+        X_train,
+        y_train,
+        X_test,
+        y_test
+    )
+    
+    print(
+        experiment_result.round(4).to_string()
+    )
     
     
 
