@@ -1,4 +1,16 @@
 import pandas as pd
+import joblib
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+MODEL_DIR = PROJECT_ROOT / "models"
+
+MODEL_DIR.mkdir(parents=True, exist_ok=True)
+
+MODEL_PATH = MODEL_DIR / "model.pkl"
+SCALER_PATH = MODEL_DIR / "scaler.pkl"
+
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -373,6 +385,7 @@ def threshold_experiment(model,X_train,y_train,\
 
 
 
+
 if __name__ == "__main__":
     
     # Load dataset
@@ -434,11 +447,11 @@ if __name__ == "__main__":
     print("=" * 20)
     
     print(f'model: {best_model_name}')
-    print(f'Accuracy: {test_results['accuracy']:.4f}')
-    print(f'Precision: {test_results['precision']:.4f}')
-    print(f'Recall: {test_results['recall']:.4f}')
-    print(f'f1: {test_results['f1']:.4f}')
-    print(f'cm: \n{test_results['confusion_matrix']}')
+    print(f'Accuracy: {test_results["accuracy"]:.4f}')
+    print(f'Precision: {test_results["precision"]:.4f}')
+    print(f'Recall: {test_results["recall"]:.4f}')
+    print(f'f1: {test_results["f1"]:.4f}')
+    print(f'cm: \n{test_results["confusion_matrix"]}')
     
 
     print("\n" + "=" * 20)
@@ -452,11 +465,11 @@ if __name__ == "__main__":
         
         
         print(f'model: {name}')
-        print(f'Accuracy: {result['accuracy']:.4f}')
-        print(f'Precision: {result['precision']:.4f}')
-        print(f'Recall: {result['recall']:.4f}')
-        print(f'f1: {result['f1']:.4f}')
-        print(f'cm: \n{result['confusion_matrix']}')
+        print(f'Accuracy: {result["accuracy"]:.4f}')
+        print(f'Precision: {result["precision"]:.4f}')
+        print(f'Recall: {result["recall"]:.4f}')
+        print(f'f1: {result["f1"]:.4f}')
+        print(f'cm: \n{result["confusion_matrix"]}')
         
     
     display_cv_results(results)
@@ -532,11 +545,39 @@ if __name__ == "__main__":
     print('\nKNN:\n',threshold_results.round(4).to_string())
 
 
+    print("\n" + "=" * 20)
+    print("FINAL MODEL")
+    print("=" * 20)
+    
+    
+    # ==============================
+    # Final Model
+    # ==============================
+
+    print("STEP 1")
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+
+    print("STEP 2")
+
+    final_model = KNeighborsClassifier(n_neighbors=5)
+
+    print("STEP 3")
+
+    final_model.fit(X_train_scaled, y_train)
+
+    print("STEP 4")
+
+    joblib.dump(scaler, SCALER_PATH)
+    print(f"Scaler saved: {SCALER_PATH}")
+
+    joblib.dump(final_model, MODEL_PATH)
+    print(f"Model saved: {MODEL_PATH}")
 
 
     print("\n" + "=" * 20)
     print("FINISH!")
     print("=" * 20)
 
-    
-    
+
