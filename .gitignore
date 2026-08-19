@@ -220,3 +220,5 @@ data/*.csv
 .idea/
 .vscode/
 .pkl
+input.json
+output.json
